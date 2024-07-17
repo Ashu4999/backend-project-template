@@ -13,6 +13,7 @@ const authVerify = (req, res, next) => {
     if (err) return res.sendStatus(403); //Forbidden
 
     req.username = decoded.username;
+    req.email = decoded.email;
     next();
   });
 };
