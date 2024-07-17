@@ -9,7 +9,7 @@ User login with JWT (JSON Web Token) for session management.
 Middleware for protected routes.
 User CRUD Operations:
 
-Create a new user.
-Read user details.
-Update user information.
+Create a new user.\n
+Read user details. \n
+Update user information. \n
 Delete a user.
