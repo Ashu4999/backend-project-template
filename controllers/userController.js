@@ -81,7 +81,7 @@ const deleteUser = async (req, res) => {
       throw { code: 404, message: "User not found" };
     }
 
-    if (User.email === req.email) {
+    if (User.id === req.id) {
       throw {
         code: 403,
         message: "You are not allowed to delete your own account.",

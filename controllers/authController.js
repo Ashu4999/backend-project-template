@@ -73,13 +73,13 @@ const login = async (req, res) => {
     }
 
     const accessToken = jwt.sign(
-      { username: foundUser.name, email: foundUser.email },
+      { username: foundUser.name, id: foundUser.id },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "5m" }
     );
 
     const refreshToken = jwt.sign(
-      { username: foundUser.name, email: foundUser.email },
+      { username: foundUser.name, id: foundUser.id },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "1d" }
     );
@@ -128,7 +128,7 @@ const refreshToken = async (req, res) => {
         const accessToken = jwt.sign(
           {
             username: decoded.username,
-            email: decoded.email,
+            id: decoded.id,
           },
           process.env.ACCESS_TOKEN_SECRET,
           { expiresIn: "5m" }
