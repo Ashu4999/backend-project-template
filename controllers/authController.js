@@ -58,9 +58,9 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { phone, password } = req.body;
+    const { email, password } = req.body;
     let where = {
-      phone_number: phone,
+      email: email,
     };
     let foundUser = await DBModels.user.findOne({ where });
     if (!foundUser) {
@@ -73,13 +73,13 @@ const login = async (req, res) => {
     }
 
     const accessToken = jwt.sign(
-      { username: foundUser.name },
+      { username: foundUser.name, id: foundUser.id },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "5m" }
     );
 
     const refreshToken = jwt.sign(
-      { username: foundUser.name },
+      { username: foundUser.name, id: foundUser.id },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "1d" }
     );
@@ -128,6 +128,7 @@ const refreshToken = async (req, res) => {
         const accessToken = jwt.sign(
           {
             username: decoded.username,
+            id: decoded.id,
           },
           process.env.ACCESS_TOKEN_SECRET,
           { expiresIn: "5m" }

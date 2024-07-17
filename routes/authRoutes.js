@@ -28,7 +28,7 @@ const registerSchema = {
 
 const loginSchema = {
   body: Joi.object({
-    phone: Joi.string().min(10).max(12).required(),
+    email: Joi.string().required(),
     password: Joi.string().required(),
   }),
 };
