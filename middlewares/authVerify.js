@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { DBModels } = require("../config/dbConn");
 
 const authVerify = (req, res, next) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
@@ -9,13 +10,23 @@ const authVerify = (req, res, next) => {
   const accessToken = req.headers["authorization"].split(" ")[1];
 
   //verifying access token
-  jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-    if (err) return res.sendStatus(403); //Forbidden
+  jwt.verify(
+    accessToken,
+    process.env.ACCESS_TOKEN_SECRET,
+    async (err, decoded) => {
+      if (err) return res.sendStatus(403); //Forbidden
 
-    req.username = decoded.username;
-    req.id = decoded.id;
-    next();
-  });
+      let foundUser = await DBModels.user.findByPk(decoded.id);
+
+      if (!foundUser) {
+        return res.sendStatus(403);
+      }
+
+      req.username = decoded.username;
+      req.id = decoded.id;
+      next();
+    }
+  );
 };
 
 module.exports = authVerify;
