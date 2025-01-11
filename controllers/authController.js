@@ -1,7 +1,6 @@
-const { DBModels } = require("../config/dbConn");
 const bcrypt = require("bcrypt");
-const { Op } = require("sequelize");
 const jwt = require("jsonwebtoken");
+const Users = require("../models/user");
 
 const register = async (req, res) => {
   try {
@@ -11,38 +10,29 @@ const register = async (req, res) => {
 
     if (email || phone) {
       where = {
-        [Op.or]: [],
+        ["$or"]: [],
       };
 
       if (email) {
-        where[Op.or].push({ email });
+        where["$or"].push({ email });
       }
 
       if (phone) {
-        where[Op.or].push({ phone_number: phone });
+        where["$or"].push({ phone_number: phone });
       }
     }
+    foundUser = await Users.findOne(where);
 
-    foundUser = await DBModels.user.findOne({ where, raw: true });
-
-    console.log(foundUser, where, Object.keys(where).length);
     if (foundUser) {
       throw { code: 409, message: "User Already Exists" };
     }
     const hashPwd = await bcrypt.hash(password, 10);
-    const User = await DBModels.user.create({
+    const User = await Users.create({
       name: username,
       password: hashPwd,
       email,
       phone_number: phone,
     });
-
-    // const UserContact = await DBModels.contact.create({
-    //   contact_name: username,
-    //   contact_phone_number: phone,
-    //   user_id: User.id,
-    //   isRegisteredUser: true,
-    // });
 
     return res.send({ message: `User registered ${User.name} ${User.id}` });
   } catch (Exception) {
@@ -62,7 +52,7 @@ const login = async (req, res) => {
     let where = {
       email: email,
     };
-    let foundUser = await DBModels.user.findOne({ where });
+    let foundUser = await Users.findOne(where);
     if (!foundUser) {
       throw { code: 409, message: "No user found" };
     }
@@ -95,6 +85,7 @@ const login = async (req, res) => {
 
     return res.send({ message: "Logged IN!!!", accessToken });
   } catch (Exception) {
+    console.log(Exception);
     let customeError = null;
     if (Exception.name === "SequelizeUniqueConstraintError") {
       customeError = Exception.errors[0].message;
@@ -113,7 +104,7 @@ const refreshToken = async (req, res) => {
 
     let refreshToken = cookies?.jwt;
 
-    let foundUser = await DBModels.user.findOne({ where: { refreshToken } });
+    let foundUser = await Users.findOne({ refreshToken });
 
     if (!foundUser) return res.sendStatus(403);
 

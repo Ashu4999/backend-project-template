@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { DBModels } = require("../config/dbConn");
+const Users = require("../models/user");
 
 const authVerify = (req, res, next) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
@@ -16,7 +16,7 @@ const authVerify = (req, res, next) => {
     async (err, decoded) => {
       if (err) return res.sendStatus(403); //Forbidden
 
-      let foundUser = await DBModels.user.findByPk(decoded.id);
+      let foundUser = await Users.findOne({ id: decoded.id });
 
       if (!foundUser) {
         return res.sendStatus(403);

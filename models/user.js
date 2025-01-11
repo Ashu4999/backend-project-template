@@ -1,40 +1,44 @@
-const { DataTypes, Sequelize } = require("sequelize");
+const mongoose = require("mongoose");
+const { v4: uuid } = require("uuid");
 
-module.exports = (sequelize) => {
-  const User = sequelize.define(
-    "User",
-    {
-      id: {
-        type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true,
-      },
-      name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      phone_number: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-      },
-      email: {
-        type: DataTypes.STRING,
-        unique: true,
-      },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      refreshToken: {
-        type: DataTypes.STRING,
-      },
+const userSchema = new mongoose.Schema(
+  {
+    id: {
+      type: String,
+      default: () => uuid(), // Generates a UUID-like string
+      unique: true,
     },
-    {
-      indexes: [{ unique: true, fields: ["id", "phone_number", "email"] }],
-      underscored: true,
-    }
-  );
+    name: {
+      type: String,
+      required: true,
+    },
+    phone_number: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    email: {
+      type: String,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    refreshToken: {
+      type: String,
+    },
+  },
+  {
+    timestamps: true, // Adds createdAt and updatedAt fields
+    toJSON: { virtuals: true }, // Allows virtual fields in JSON responses
+    toObject: { virtuals: true },
+  }
+);
 
-  return User;
-};
+// Add a compound index
+userSchema.index({ id: 1, phone_number: 1, email: 1 }, { unique: true });
+
+const User = mongoose.model("User", userSchema);
+
+module.exports = User;

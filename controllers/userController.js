@@ -1,5 +1,4 @@
-const { DBModels } = require("../config/dbConn");
-const { Op } = require("sequelize");
+const Users = require("../models/user");
 
 const getUser = async (req, res) => {
   try {
@@ -7,25 +6,22 @@ const getUser = async (req, res) => {
     let where = {};
 
     if (uuids) {
-      where["id"] = { [Op.in]: uuids.split(",") };
+      where["id"] = { ["$or"]: uuids.split(",") };
     }
 
     if (names) {
-      where["name"] = { [Op.in]: names.split(",") };
+      where["name"] = { ["$or"]: names.split(",") };
     }
 
     if (phoneNumbers) {
-      where["phone_number"] = { [Op.in]: phoneNumbers.split(",") };
+      where["phone_number"] = { ["$or"]: phoneNumbers.split(",") };
     }
 
     if (emails) {
-      where["email"] = { [Op.in]: emails.split(",") };
+      where["email"] = { ["$or"]: emails.split(",") };
     }
 
-    const users = await DBModels.user.findAll({
-      where,
-      attributes: { exclude: ["password"] },
-    });
+    const users = await Users.find(where, { password: 0 });
     return res.send(users);
   } catch (Exception) {
     console.error(Exception);
@@ -44,19 +40,15 @@ const updateUser = async (req, res) => {
     const { id } = req.query;
     const { username, email } = req.body;
 
-    const User = await DBModels.user.findOne({
-      where: { id },
-      attributes: { exclude: ["password"] },
-    });
+    const User = await Users.findOneAndUpdate({ id });
 
     if (!User) {
       throw { code: 404, message: "User not found" };
     }
 
-    await User.update({
-      name: username,
-      email: email,
-    });
+    User.name = username ?? User.name;
+    User.email = email ?? User.email;
+    await User.save();
 
     return res.send({ message: `User updated successfully`, user: User });
   } catch (Exception) {
@@ -75,7 +67,7 @@ const deleteUser = async (req, res) => {
   try {
     const { id } = req.query;
 
-    const User = await DBModels.user.findByPk(id);
+    const User = await Users.findOne({ id });
 
     if (!User) {
       throw { code: 404, message: "User not found" };
@@ -88,7 +80,7 @@ const deleteUser = async (req, res) => {
       };
     }
 
-    await DBModels.user.destroy({ where: { id } });
+    await Users.findOneAndDelete({ id });
 
     return res.send({ message: "User deleted successfully" });
   } catch (Exception) {
